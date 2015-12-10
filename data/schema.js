@@ -37,13 +37,13 @@ import {
 //***************************//
 
 let instructors = [
-  {id: 13, name: "Cade Nichols", age: 2, gender: "male"},
-  {id: 42, name: "Samer Buna", age: 7, gender: "male"}
+  {id: 13, name: "Cade Hercules Nichols", age: 2, gender: "male"},
+  {id: 42, name: "Samer The Hammer Buna", age: 7, gender: "male"}
 ];
 
 let students = [
   {id: 7, name: "Nicholas Babelthuap Neumann-Chun", age: 126, gender: "male", level: 1},
-  {id: 9, name: "Sarah Lyon", age: 125, gender: "female", level: 3}
+  {id: 9, name: "Sarah Papaya Lyon", age: 125, gender: "female", level: 3}
 ];
 
 let LEVELS_ENUM = ["FRESHMAN", "SOPHMORE", "JUNIOR", "SENIOR"];
@@ -117,21 +117,25 @@ let {nodeInterface, nodeField} = nodeDefinitions(
 // New Type Definitions //
 //**********************//
 
+let personFields = {
+  id: { type: new GraphQLNonNull(GraphQLID) },
+  name: { type: GraphQLString },
+  firstName: {
+    type: GraphQLString,
+    resolve: ({name}) => name.split(' ')[0]
+  },
+  lastName: {
+    type: GraphQLString,
+    resolve: ({name}) => name.split(' ').slice(-1)[0]
+  },
+  age: { type: GraphQLInt },
+  gender: { type: GraphQLString },
+};
+
 let instructorType = new GraphQLObjectType({
   name: 'Instructor',
   fields: () => ({
-    id: { type: new GraphQLNonNull(GraphQLID) },
-    name: { type: GraphQLString },
-    firstName: {
-      type: GraphQLString,
-      resolve: ({name}) => name.split(' ')[0]
-    },
-    lastName: {
-      type: GraphQLString,
-      resolve: ({name}) => name.split(' ').slice(-1)[0]
-    },
-    age: { type: GraphQLInt },
-    gender: { type: GraphQLString },
+    ...personFields,
     courses: {
       type: new GraphQLList(courseType),
       resolve: ({id}) => courses.findAllByPropValue('instructor', id)
@@ -142,18 +146,7 @@ let instructorType = new GraphQLObjectType({
 let studentType = new GraphQLObjectType({
   name: 'Student',
   fields: () => ({
-    id: { type: new GraphQLNonNull(GraphQLID) },
-    name: { type: GraphQLString },
-    firstName: {
-      type: GraphQLString,
-      resolve: ({name}) => name.split(' ')[0]
-    },
-    lastName: {
-      type: GraphQLString,
-      resolve: ({name}) => name.split(' ').slice(-1)[0]
-    },
-    age: { type: GraphQLInt },
-    gender: { type: GraphQLString },
+    ...personFields,
     level: {
       type: GraphQLString,
       resolve: ({level}) => LEVELS_ENUM[level - 1]
@@ -273,7 +266,7 @@ let queryType = new GraphQLObjectType({
         ...connectionArgs
       },
       resolve: (_, args) => {
-        let filteredInstructors = filterCollection(instructors, args.filter, args.filterBy, 'firstName');
+        let filteredInstructors = filterCollection(instructors, args.filter, args.filterBy, 'name');
         return connectionFromArray(filteredInstructors, args);
       },
     },
@@ -286,7 +279,7 @@ let queryType = new GraphQLObjectType({
         ...connectionArgs
       },
       resolve: (_, args) => {
-        let filteredStudents = filterCollection(students, args.filter, args.filterBy, 'firstName');
+        let filteredStudents = filterCollection(students, args.filter, args.filterBy, 'name');
         return connectionFromArray(filteredStudents, args);
       },
     },
