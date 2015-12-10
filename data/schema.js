@@ -37,13 +37,13 @@ import {
 //***************************//
 
 let instructors = [
-  {id: 13, firstName: "Cade", lastName: "Nichols", age: 2, gender: "male"},
-  {id: 42, firstName: "Samer", lastName: "Buna", age: 7, gender: "male"}
+  {id: 13, name: "Cade Nichols", age: 2, gender: "male"},
+  {id: 42, name: "Samer Buna", age: 7, gender: "male"}
 ];
 
 let students = [
-  {id: 7, firstName: "Nicholas", lastName: "Neumann-Chun", age: 126, gender: "male", level: 1},
-  {id: 9, firstName: "Sarah", lastName: "Lyon", age: 125, gender: "female", level: 3}
+  {id: 7, name: "Nicholas Babelthuap Neumann-Chun", age: 126, gender: "male", level: 1},
+  {id: 9, name: "Sarah Lyon", age: 125, gender: "female", level: 3}
 ];
 
 let LEVELS_ENUM = ["FRESHMAN", "SOPHMORE", "JUNIOR", "SENIOR"];
@@ -121,11 +121,14 @@ let instructorType = new GraphQLObjectType({
   name: 'Instructor',
   fields: () => ({
     id: { type: new GraphQLNonNull(GraphQLID) },
-    firstName: { type: GraphQLString },
-    lastName: { type: GraphQLString },
-    fullName: {
+    name: { type: GraphQLString },
+    firstName: {
       type: GraphQLString,
-      resolve: ({firstName, lastName}) => `Professor ${firstName} ${lastName}`
+      resolve: ({name}) => name.split(' ')[0]
+    },
+    lastName: {
+      type: GraphQLString,
+      resolve: ({name}) => name.split(' ').slice(-1)[0]
     },
     age: { type: GraphQLInt },
     gender: { type: GraphQLString },
@@ -140,11 +143,14 @@ let studentType = new GraphQLObjectType({
   name: 'Student',
   fields: () => ({
     id: { type: new GraphQLNonNull(GraphQLID) },
-    firstName: { type: GraphQLString },
-    lastName: { type: GraphQLString },
-    fullName: {
+    name: { type: GraphQLString },
+    firstName: {
       type: GraphQLString,
-      resolve: ({firstName, lastName}) => `${firstName} ${lastName}`
+      resolve: ({name}) => name.split(' ')[0]
+    },
+    lastName: {
+      type: GraphQLString,
+      resolve: ({name}) => name.split(' ').slice(-1)[0]
     },
     age: { type: GraphQLInt },
     gender: { type: GraphQLString },
