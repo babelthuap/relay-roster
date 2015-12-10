@@ -7,27 +7,41 @@
  *  of patent rights can be found in the PATENTS file in the same directory.
  */
 
-// Model types
-class User extends Object {}
-class Widget extends Object {}
+//***************************//
+// Seed The Pretend Database //
+//***************************//
 
-// Mock data
-var viewer = new User();
-viewer.id = '1';
-viewer.name = 'Anonymous';
-var widgets = ['What\'s-it', 'Who\'s-it', 'How\'s-it'].map((name, i) => {
-  var widget = new Widget();
-  widget.name = name;
-  widget.id = `${i}`;
-  return widget;
-});
+let instructors = [
+  {id: 13, name: "Cade Hercules Nichols", age: 2, gender: "male"},
+  {id: 42, name: "Samer The Hammer Buna", age: 7, gender: "male"}
+];
+
+let students = [
+  {id: 7, name: "Nicholas Babelthuap Neumann-Chun", age: 126, gender: "male", level: 1},
+  {id: 9, name: "Sarah Papaya Lyon", age: 125, gender: "female", level: 3}
+];
+
+let LEVELS_ENUM = ["FRESHMAN", "SOPHMORE", "JUNIOR", "SENIOR"];
+
+let courses = [
+  {id: 101, name: "Skydiving", instructor: 13, students: new Set([7])},
+  {id: 102, name: "ReactCamp", instructor: 42, students: new Set([7, 9])}
+];
+
+let grades = [
+  {id: Math.random(), student: 7, course: 101, grade: 0},
+  {id: Math.random(), student: 7, course: 102, grade: 2},
+  {id: Math.random(), student: 9, course: 102, grade: 4}
+];
+
+let GRADES_ENUM = ["F", "D", "C", "B", "A"];
+
 
 module.exports = {
-  // Export methods that your schema can use to interact with your database
-  getUser: (id) => id === viewer.id ? viewer : null,
-  getViewer: () => viewer,
-  getWidget: (id) => widgets.find(w => w.id === id),
-  getWidgets: () => widgets,
-  User,
-  Widget,
+  instructors: instructors,
+  students: students,
+  courses: courses,
+  grades: grades,
+  LEVELS_ENUM: LEVELS_ENUM,
+  GRADES_ENUM: GRADES_ENUM,
 };

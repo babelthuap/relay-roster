@@ -29,112 +29,37 @@ import {
   nodeDefinitions,
 } from 'graphql-relay';
 
-// import { } from './database';
+import {
+  findOneByPropValue,
+  findAllByPropValue,
+  filterCollection
+} from './util';
+
+import {
+  instructors,
+  students,
+  courses,
+  grades,
+  LEVELS_ENUM,
+  GRADES_ENUM
+} from './database';
 
 
-//***************************//
-// Seed The Pretend Database //
-//***************************//
-
-let instructors = [
-  {id: 13, name: "Cade Hercules Nichols", age: 2, gender: "male"},
-  {id: 42, name: "Samer The Hammer Buna", age: 7, gender: "male"}
-];
-
-let students = [
-  {id: 7, name: "Nicholas Babelthuap Neumann-Chun", age: 126, gender: "male", level: 1},
-  {id: 9, name: "Sarah Papaya Lyon", age: 125, gender: "female", level: 3}
-];
-
-let LEVELS_ENUM = ["FRESHMAN", "SOPHMORE", "JUNIOR", "SENIOR"];
-
-let courses = [
-  {id: 101, name: "Skydiving", instructor: 13, students: new Set([7])},
-  {id: 102, name: "ReactCamp", instructor: 42, students: new Set([7, 9])}
-];
-
-let grades = [
-  {id: Math.random(), student: 7, course: 101, grade: 0},
-  {id: Math.random(), student: 7, course: 102, grade: 2},
-  {id: Math.random(), student: 9, course: 102, grade: 4}
-];
-
-let GRADES_ENUM = ["F", "D", "C", "B", "A"];
-
-
-//***************************//
-// Methods to Query Database //
-//***************************//
-
-Array.prototype.findOneByPropValue = function(prop, value) {
-  for (let i = 0; i < this.length; ++i) {
-    if (this[i][prop] == value) return this[i];
-  }
-  return null;
-}
-
-Array.prototype.findAllByPropValue = function(prop, value) {
-  let results = [];
-  for (let i = 0; i < this.length; ++i) {
-    if (this[i][prop] == value) {
-      results.push(this[i]);
-    }
-  }
-  return results;
-}
-
-
-/**
- * We get the node interface and field from the Relay library.
- *
- * The first method defines the way we resolve an ID to its object.
- * The second defines the way we resolve an object to its GraphQL type.
- */
-let {nodeInterface, nodeField} = nodeDefinitions(
-  (globalId) => {
-    let {type, id} = fromGlobalId(globalId);
-    // if (type === 'User') {
-    //   return getUser(id);
-    // } else if (type === 'Widget') {
-    //   return getWidget(id);
-    // } else {
-    //   return null;
-    // }
-  },
-  (obj) => {
-    // if (obj instanceof User) {
-    //   return userType;
-    // } else if (obj instanceof Widget)  {
-    //   return widgetType;
-    // } else {
-    //   return null;
-    // }
-  }
-);
-
-
-// fake connection definitions (so they can be used in the type definitions)
-let courseConnection, instructorConnection, studentConnection, gradeConnection;
+// Get the node interface from the Relay library.
+let nodeInterface = nodeDefinitions(
+  (globalId) => {let {type, id} = fromGlobalId(globalId)},
+  (obj) => {}
+).nodeInterface;
 
 
 //**********************//
 // New Type Definitions //
 //**********************//
 
-let personFields = {
-  id: { type: new GraphQLNonNull(GraphQLID) },
-  name: { type: GraphQLString },
-  firstName: {
-    type: GraphQLString,
-    resolve: ({name}) => name.split(' ')[0]
-  },
-  lastName: {
-    type: GraphQLString,
-    resolve: ({name}) => name.split(' ').slice(-1)[0]
-  },
-  age: { type: GraphQLInt },
-  gender: { type: GraphQLString },
-};
+// fake connection definitions (so they can be used in the type definitions)
+let courseConnection, instructorConnection, studentConnection, gradeConnection;
+
+import personFields from "./personFields";
 
 let instructorType = new GraphQLObjectType({
   name: 'Instructor',
@@ -144,7 +69,7 @@ let instructorType = new GraphQLObjectType({
       type: courseConnection,
       args: connectionArgs,
       resolve: ({id}, args) => {
-        let filteredCourses = courses.findAllByPropValue('instructor', id);
+        let filteredCourses = findAllByPropValue.call(courses, 'instructor', id);
         return connectionFromArray(filteredCourses, args);
       },
     },
@@ -163,14 +88,14 @@ let studentType = new GraphQLObjectType({
       type: gradeConnection,
       args: connectionArgs,
       resolve: ({id}, args) => {
-        let filteredGrades = grades.findAllByPropValue('student', id);
+        let filteredGrades = findAllByPropValue.call(grades, 'student', id);
         return connectionFromArray(filteredGrades, args);
       },
     },
     GPA: {
       type: GraphQLFloat,
       resolve: ({id}) => {
-        let nums = grades.findAllByPropValue('student', id).map(course => course.grade);
+        let nums = findAllByPropValue.call(grades, 'student', id).map(course => course.grade);
         let GPA = nums.reduce((total, x) => total + x, 0) / nums.length;
         return Number( GPA.toFixed(2) );
       }
@@ -193,14 +118,14 @@ let courseType = new GraphQLObjectType({
     name: { type: GraphQLString },
     instructor: {
       type: new GraphQLNonNull(instructorType),
-      resolve: ({instructor}) => instructors.findOneByPropValue('id', instructor)
+      resolve: ({instructor}) => findOneByPropValue.call(instructors, 'id', instructor)
     },
     studentsConnection: {
       type: studentConnection,
       args: connectionArgs,
       resolve: (obj, args) => {
         let enrolledIds = [...obj.students];
-        let filteredStudents = enrolledIds.map(studentId => students.findOneByPropValue('id', studentId));
+        let filteredStudents = enrolledIds.map(studentId => findOneByPropValue.call(students, 'id', studentId));
         return connectionFromArray(filteredStudents, args);
       },
     },
@@ -208,7 +133,7 @@ let courseType = new GraphQLObjectType({
       type: gradeConnection,
       args: connectionArgs,
       resolve: ({id}, args) => {
-        let filteredGrades = grades.findAllByPropValue('course', id)
+        let filteredGrades = findAllByPropValue.call(grades, 'course', id)
         return connectionFromArray(filteredGrades, args);
       },
     },
@@ -221,11 +146,11 @@ let gradeType = new GraphQLObjectType({
     id: { type: new GraphQLNonNull(GraphQLID) },
     student: {
       type: new GraphQLNonNull(studentType),
-      resolve: ({student}) => students.findOneByPropValue('id', student)
+      resolve: ({student}) => findOneByPropValue.call(students, 'id', student)
     },
     course: {
       type: new GraphQLNonNull(courseType),
-      resolve: ({course}) => courses.findOneByPropValue('id', course)
+      resolve: ({course}) => findOneByPropValue.call(courses, 'id', course)
     },
     grade: {
       type: GraphQLString,
@@ -250,29 +175,6 @@ courseConnection = courseDef.connectionType;
 
 let gradeDef = connectionDefinitions({ name: 'Grade', nodeType: gradeType });
 gradeConnection = gradeDef.connectionType;
-
-
-//*******************//
-// Utility Functions //
-//*******************//
-
-let escapeRegExp = (string) => string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-
-function filterCollection(collection, filter, filterBy, defaultFilter) {
-  if (!filter) return collection;
-
-  if (!filterBy) filterBy = defaultFilter;
-
-  if (isNaN(Number(filter))) { // test for number input
-    // Filter Collection Such That Letters Do Not Have To Be Consecutive!!!!
-    let reRaw = '.*' + filter.split('').map(escapeRegExp).join('.*') + '.*';
-    let re = new RegExp(reRaw, 'i');
-    return collection.filter(item => re.test(item[filterBy]));
-  } else {
-    filter = Number(filter);
-    return collection.findAllByPropValue(filterBy, filter);
-  }
-}
 
 
 //***************************//
