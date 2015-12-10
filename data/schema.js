@@ -31,6 +31,7 @@ import {
 
 // import { } from './database';
 
+
 //***************************//
 // Seed The Pretend Database //
 //***************************//
@@ -59,6 +60,7 @@ let grades = [
 ];
 
 let GRADES_ENUM = ["F", "D", "C", "B", "A"];
+
 
 //***************************//
 // Methods to Query Database //
@@ -208,65 +210,41 @@ let gradeType = new GraphQLObjectType({
 });
 
 
-//***************************//
-// GraphQL Schema Definition //
-//***************************//
+//******************//
+// Connection Types //
+//******************//
+
+let {connectionType: instructorConnection} =
+  connectionDefinitions({name: 'Instructor', nodeType: instructorType});
+
+
+//*******************//
+// Utility Functions //
+//*******************//
+
+let escapeRegExp = (string) => string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 function filterCollection(collection, filter, filterBy, defaultFilter) {
-  if (filter) {
-    if (!filterBy) filterBy = defaultFilter;
-    if (!isNaN(Number(filter))) filter = Number(filter); // convert number input
-    return collection.findAllByPropValue(filterBy, filter);
+  if (!filter) return collection;
+
+  if (!filterBy) filterBy = defaultFilter;
+
+  if (isNaN(Number(filter))) { // test for number input
+    // Filter Collection Such That Letters Do Not Have To Be Consecutive!!!!
+    let reRaw = '.*' + filter.split('').map(escapeRegExp).join('.*') + '.*';
+    let re = new RegExp(reRaw, 'i');
+    return collection.filter(item => re.test(item[filterBy]));
   } else {
-    return collection;
+    filter = Number(filter);
+    return collection.findAllByPropValue(filterBy, filter);
   }
 }
 
 
-/**
- * Define your own types here
- */
+//***************************//
+// GraphQL Schema Definition //
+//***************************//
 
-// let userType = new GraphQLObjectType({
-//   name: 'User',
-//   description: 'A person who uses our app',
-//   fields: () => ({
-//     id: globalIdField('User'),
-//     widgets: {
-//       type: widgetConnection,
-//       description: 'A person\'s collection of widgets',
-//       args: connectionArgs,
-//       resolve: (_, args) => connectionFromArray(getWidgets(), args),
-//     },
-//   }),
-//   interfaces: [nodeInterface],
-// });
-
-// let widgetType = new GraphQLObjectType({
-//   name: 'Widget',
-//   description: 'A shiny widget',
-//   fields: () => ({
-//     id: globalIdField('Widget'),
-//     name: {
-//       type: GraphQLString,
-//       description: 'The name of the widget',
-//     },
-//   }),
-//   interfaces: [nodeInterface],
-// });
-
-/**
- * Define your own connection types here **************************************************************** !!!
- */
-// let {connectionType: widgetConnection} =
-//   connectionDefinitions({name: 'Widget', nodeType: widgetType});
-let {connectionType: instructorConnection} =
-  connectionDefinitions({name: 'Instructor', nodeType: instructorType});
-
-/**
- * This is the type that will be the root of our query,
- * and the entry point into our schema.
- */
 let queryType = new GraphQLObjectType({
   name: 'Query',
   fields: () => ({
@@ -282,7 +260,7 @@ let queryType = new GraphQLObjectType({
       resolve: (_, args) => {
         let filteredInstructors = filterCollection(instructors, args.filter, args.filterBy, 'firstName');
         return connectionFromArray(filteredInstructors, args)
-      }
+      },
     },
 
     students: {
