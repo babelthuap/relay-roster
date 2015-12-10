@@ -139,7 +139,7 @@ let instructorType = new GraphQLObjectType({
     courses: {
       type: new GraphQLList(courseType),
       resolve: ({id}) => courses.findAllByPropValue('instructor', id)
-    }
+    },
   })
 });
 
@@ -166,7 +166,7 @@ let studentType = new GraphQLObjectType({
     courses: {
       type: new GraphQLList(courseType),
       resolve: ({id}) => courses.filter(course => course.students.has(id))
-    }
+    },
   })
 });
 
@@ -185,7 +185,11 @@ let courseType = new GraphQLObjectType({
         let studentList = [...obj.students];
         return studentList.map(studentId => students.findOneByPropValue('id', studentId));
       }
-    }
+    },
+    grades: {
+      type: new GraphQLList(gradeType),
+      resolve: ({id}) => grades.findAllByPropValue('course', id)
+    },
   })
 });
 
@@ -204,7 +208,7 @@ let gradeType = new GraphQLObjectType({
     grade: {
       type: GraphQLString,
       resolve: ({grade}) => GRADES_ENUM[grade]
-    }
+    },
   })
 });
 
