@@ -1,6 +1,12 @@
-# Relay Starter Kit
+# Relay Roster
 
-This kit includes an app server, a GraphQL server, and a transpiler that you can use to get started building an app with Relay. For a walkthrough, see the [Relay tutorial](https://facebook.github.io/relay/docs/tutorial.html).
+_by Nicholas Neumann-Chun_
+
+_based on the [Relay Starter Kit](https://github.com/relayjs/relay-starter-kit)_
+
+## Description
+
+Use GraphQL to query a simple dataset consisting of students, instructors, courses, and grades.  Uses Relay.
 
 ## Installation
 
@@ -13,20 +19,7 @@ npm install
 Start a local server:
 
 ```
-npm start
-```
-
-## Developing
-
-Any changes you make to files in the `js/` directory will cause the server to
-automatically rebuild the app and refresh your browser.
-
-If at any time you make changes to `data/schema.js`, stop the server,
-regenerate `data/schema.json`, and restart the server:
-
-```
-npm run update-schema
-npm start
+npm run update
 ```
 
 ## License
