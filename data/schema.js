@@ -113,6 +113,10 @@ let {nodeInterface, nodeField} = nodeDefinitions(
 );
 
 
+// fake connection definitions (so they can be used in the type definitions)
+let courseConnection, instructorConnection, studentConnection, gradeConnection;
+
+
 //**********************//
 // New Type Definitions //
 //**********************//
@@ -136,9 +140,13 @@ let instructorType = new GraphQLObjectType({
   name: 'Instructor',
   fields: () => ({
     ...personFields,
-    courses: {
-      type: new GraphQLList(courseType),
-      resolve: ({id}) => courses.findAllByPropValue('instructor', id)
+    coursesConnection: {
+      type: courseConnection,
+      args: connectionArgs,
+      resolve: ({id}, args) => {
+        let filteredCourses = courses.findAllByPropValue('instructor', id);
+        return connectionFromArray(filteredCourses, args);
+      },
     },
   })
 });
@@ -151,9 +159,13 @@ let studentType = new GraphQLObjectType({
       type: GraphQLString,
       resolve: ({level}) => LEVELS_ENUM[level - 1]
     },
-    grades: {
-      type: new GraphQLList(gradeType),
-      resolve: ({id}) => grades.findAllByPropValue('student', id)
+    gradesConnection: {
+      type: gradeConnection,
+      args: connectionArgs,
+      resolve: ({id}, args) => {
+        let filteredGrades = grades.findAllByPropValue('student', id);
+        return connectionFromArray(filteredGrades, args);
+      },
     },
     GPA: {
       type: GraphQLFloat,
@@ -163,9 +175,13 @@ let studentType = new GraphQLObjectType({
         return Number( GPA.toFixed(2) );
       }
     },
-    courses: {
-      type: new GraphQLList(courseType),
-      resolve: ({id}) => courses.filter(course => course.students.has(id))
+    coursesConnection: {
+      type: courseConnection,
+      args: connectionArgs,
+      resolve: ({id}, args) => {
+        let filteredCourses = courses.filter(course => course.students.has(id))
+        return connectionFromArray(filteredCourses, args);
+      },
     },
   })
 });
@@ -179,16 +195,22 @@ let courseType = new GraphQLObjectType({
       type: new GraphQLNonNull(instructorType),
       resolve: ({instructor}) => instructors.findOneByPropValue('id', instructor)
     },
-    students: {
-      type: new GraphQLList(studentType),
-      resolve: obj => {
-        let studentList = [...obj.students];
-        return studentList.map(studentId => students.findOneByPropValue('id', studentId));
-      }
+    studentsConnection: {
+      type: studentConnection,
+      args: connectionArgs,
+      resolve: (obj, args) => {
+        let enrolledIds = [...obj.students];
+        let filteredStudents = enrolledIds.map(studentId => students.findOneByPropValue('id', studentId));
+        return connectionFromArray(filteredStudents, args);
+      },
     },
-    grades: {
-      type: new GraphQLList(gradeType),
-      resolve: ({id}) => grades.findAllByPropValue('course', id)
+    gradesConnection: {
+      type: gradeConnection,
+      args: connectionArgs,
+      resolve: ({id}, args) => {
+        let filteredGrades = grades.findAllByPropValue('course', id)
+        return connectionFromArray(filteredGrades, args);
+      },
     },
   })
 });
@@ -217,17 +239,17 @@ let gradeType = new GraphQLObjectType({
 // Connection Types //
 //******************//
 
-let {connectionType: instructorConnection} =
-  connectionDefinitions({name: 'Instructor', nodeType: instructorType});
+let instructorDef = connectionDefinitions({ name: 'Instructor', nodeType: instructorType });
+instructorConnection = instructorDef.connectionType;
 
-let {connectionType: studentConnection} =
-  connectionDefinitions({name: 'Student', nodeType: studentType});
+let studentDef = connectionDefinitions({ name: 'Student', nodeType: studentType });
+studentConnection = studentDef.connectionType;
 
-let {connectionType: courseConnection} =
-  connectionDefinitions({name: 'Course', nodeType: courseType});
+let courseDef = connectionDefinitions({ name: 'Course', nodeType: courseType });
+courseConnection = courseDef.connectionType;
 
-let {connectionType: gradeConnection} =
-  connectionDefinitions({name: 'Grade', nodeType: gradeType});
+let gradeDef = connectionDefinitions({ name: 'Grade', nodeType: gradeType });
+gradeConnection = gradeDef.connectionType;
 
 
 //*******************//
