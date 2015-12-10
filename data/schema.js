@@ -217,6 +217,15 @@ let gradeType = new GraphQLObjectType({
 let {connectionType: instructorConnection} =
   connectionDefinitions({name: 'Instructor', nodeType: instructorType});
 
+let {connectionType: studentConnection} =
+  connectionDefinitions({name: 'Student', nodeType: studentType});
+
+let {connectionType: courseConnection} =
+  connectionDefinitions({name: 'Course', nodeType: courseType});
+
+let {connectionType: gradeConnection} =
+  connectionDefinitions({name: 'Grade', nodeType: gradeType});
+
 
 //*******************//
 // Utility Functions //
@@ -259,35 +268,44 @@ let queryType = new GraphQLObjectType({
       },
       resolve: (_, args) => {
         let filteredInstructors = filterCollection(instructors, args.filter, args.filterBy, 'firstName');
-        return connectionFromArray(filteredInstructors, args)
+        return connectionFromArray(filteredInstructors, args);
       },
     },
 
     students: {
-      type: new GraphQLList(studentType),
+      type: studentConnection,
       args: {
         filter: { type: GraphQLString },
-        filterBy: { type: GraphQLString }
+        filterBy: { type: GraphQLString },
+        ...connectionArgs
       },
-      resolve: (_, {filter, filterBy}) => filterCollection(students, filter, filterBy, 'firstName')
+      resolve: (_, args) => {
+        let filteredStudents = filterCollection(students, args.filter, args.filterBy, 'firstName');
+        return connectionFromArray(filteredStudents, args);
+      },
     },
 
     courses: {
-      type: new GraphQLList(courseType),
+      type: courseConnection,
       args: {
         filter: { type: GraphQLString },
-        filterBy: { type: GraphQLString }
+        filterBy: { type: GraphQLString },
+        ...connectionArgs
       },
-      resolve: (_, {filter, filterBy}) => filterCollection(courses, filter, filterBy, 'name')
+      resolve: (_, args) => {
+        let filteredCourses = filterCollection(courses, args.filter, args.filterBy, 'name');
+        return connectionFromArray(filteredCourses, args);
+      },
     },
 
     grades: {
-      type: new GraphQLList(gradeType),
-      resolve: () => grades
-    }
+      type: gradeConnection,
+      args: connectionArgs,
+      resolve: (_, args) => connectionFromArray(grades, args),
+    },
 
   }),
-  interfaces: [nodeInterface]
+  interfaces: [nodeInterface],
 });
 
 /**
