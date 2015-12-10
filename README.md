@@ -24,4 +24,4 @@ npm run update
 
 ## License
 
-Relay Starter Kit is [BSD licensed](./LICENSE). We also provide an additional [patent grant](./PATENTS).
+Relay Starter Kit is [BSD licensed](./LICENSE). Facebook also provides an additional [patent grant](./PATENTS).
