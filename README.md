@@ -8,18 +8,21 @@ _based on the [Relay Starter Kit](https://github.com/relayjs/relay-starter-kit)_
 
 Use GraphQL to query a simple dataset consisting of students, instructors, courses, and grades.  Uses Relay.
 
-## Installation
+## Getting It Started
+
+Do `npm install` and `npm run update`.  Then go to `localhost:3000/graphql` and try, for example,
 
 ```
-npm install
-```
-
-## Running
-
-Start a local server:
-
-```
-npm run update
+query {
+  instructors {
+    edges {
+      cursor
+      node {
+        name
+      }
+    }
+  }
+}
 ```
 
 ## License
