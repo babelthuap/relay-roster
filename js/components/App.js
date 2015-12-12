@@ -5,10 +5,10 @@ class App extends React.Component {
   render() {
     return (
       <div>
-        <h1>Widget list</h1>
+        <h1>Student list</h1>
         <ul>
-          {this.props.viewer.widgets.edges.map(edge =>
-            <li key={edge.node.id}>{edge.node.name} (ID: {edge.node.id})</li>
+          {this.props.students.students.edges.map(edge =>
+            <li key={edge.node.id}>{edge.node.name} - {edge.node.level}</li>
           )}
         </ul>
       </div>
@@ -18,16 +18,17 @@ class App extends React.Component {
 
 export default Relay.createContainer(App, {
   fragments: {
-    viewer: () => Relay.QL`
-      fragment on User {
-        widgets(first: 10) {
+    students: () => Relay.QL`
+      fragment on Query {
+        students(first: 2) {
           edges {
             node {
-              id,
-              name,
-            },
-          },
-        },
+              id
+              name
+              level
+            }
+          }
+        }
       }
     `,
   },
